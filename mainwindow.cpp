@@ -6,6 +6,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    setWindowTitle( "Stream Protocol Editor" );
 }
 
 MainWindow::~MainWindow()
