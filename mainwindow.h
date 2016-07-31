@@ -2,6 +2,11 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QTableWidget>
+#include <QRadioButton>
+#include <QGroupBox>
 
 namespace Ui {
 class MainWindow;
@@ -17,6 +22,19 @@ public:
 
 private:
     Ui::MainWindow *ui;
+
+    QLineEdit _search_text;
+    QPushButton _search_button;
+
+    QPushButton _module_add;
+    QPushButton _module_del;
+    QTableWidget _module_table;
+
+    QPushButton _function_add;
+    QPushButton _function_del;
+    QTableWidget _function_table;
+
+    QWidget _proto_group;
 };
 
 #endif // MAINWINDOW_H
