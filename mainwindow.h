@@ -2,11 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+
+#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTableWidget>
-#include <QRadioButton>
-#include <QGroupBox>
+#include <QTreeWidget>
 
 namespace Ui {
 class MainWindow;
@@ -35,10 +36,17 @@ private:
     QTableWidget _function_table;
 
     QWidget _proto_group;
+
+    QTreeWidget _node_tree;
+    QWidget _server_group;
+    QLabel _node_label;
+    QPushButton _field_add;
+    QPushButton _field_del;
 public slots:
     void module_add();
     void module_del();
     void module_sort( int column );
+    void field_add();
 };
 
 #endif // MAINWINDOW_H

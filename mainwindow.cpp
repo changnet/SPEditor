@@ -4,8 +4,10 @@
 #include "qnumbertablewidgetitem.h"
 
 #include <QDebug>
+#include <QCheckBox>
+#include <QComboBox>
 #include <QStringList>
-
+#include <QRadioButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
@@ -15,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    this->resize( 860,640 );
+    this->resize( 1024,640 );
     setWindowTitle( "Stream Protocol Editor" );
 
     _search_button.setText( "search" );
@@ -23,6 +25,10 @@ MainWindow::MainWindow(QWidget *parent) :
     _module_del.setText( "delete" );
     _function_add.setText( "new" );
     _function_del.setText( "delete" );
+    _node_label.setText( "no proto select" );
+    _node_label.setAlignment( Qt::AlignCenter );
+    _field_add.setText( "new" );
+    _field_del.setText( "delete" );
 
     _module_table.setColumnCount( 2 );
     QStringList module_labels;
@@ -39,9 +45,9 @@ MainWindow::MainWindow(QWidget *parent) :
     module_header->setSortIndicator( 0,Qt::AscendingOrder );
     connect( module_header,SIGNAL(sectionClicked(int)),this,SLOT(module_sort(int)) );
 
-    _function_table.setColumnCount( 2 );
+    _function_table.setColumnCount( 3 );
     QStringList function_labels;
-    function_labels << "function id" << "comments";
+    function_labels << "function id" << "S&C" << "comments";
     _function_table.setHorizontalHeaderLabels( function_labels );
     _function_table.verticalHeader()->setVisible( false );
     _function_table.setSortingEnabled( true );
@@ -56,6 +62,21 @@ MainWindow::MainWindow(QWidget *parent) :
     proto_c2s->setText( "C2S" );
     proto_all->setText( "All" );
     proto_all->setChecked( true );
+
+    QStringList tree_labels;
+    tree_labels << "field" << "data type" << "optional" << "comments";
+    _node_tree.setHeaderLabels( tree_labels );
+
+    QRadioButton *srv_router = new QRadioButton( "Router" );
+    QRadioButton *srv_player = new QRadioButton( "Player" );
+    QRadioButton *srv_world  = new QRadioButton( "world"  );
+    QHBoxLayout *srv_layout = new QHBoxLayout();
+    srv_layout->addWidget( srv_router );
+    srv_layout->addWidget( srv_player );
+    srv_layout->addWidget( srv_world  );
+    srv_layout->addWidget( &_field_add );
+    srv_layout->addWidget( &_field_del );
+    _server_group.setLayout( srv_layout );
 
     QHBoxLayout *proto_layout = new QHBoxLayout();
     proto_layout->addWidget( proto_s2c );
@@ -88,17 +109,27 @@ MainWindow::MainWindow(QWidget *parent) :
     table_layout->addLayout( module_layout );
     table_layout->addLayout( function_layout );
 
+    QVBoxLayout *node_layout = new QVBoxLayout();
+    node_layout->addWidget( &_node_label );
+    node_layout->addWidget( &_server_group );
+    node_layout->addWidget( &_node_tree );
+
     QVBoxLayout *vbox = new QVBoxLayout();
     vbox->addLayout( search_layout );
     vbox->addLayout( table_layout );
 
+    QHBoxLayout *hbox = new QHBoxLayout();
+    hbox->addLayout( vbox );
+    hbox->addLayout( node_layout );
+
     QWidget *widget = new QWidget();
-    widget->setLayout( vbox );
+    widget->setLayout( hbox );
 
     this->setCentralWidget( widget );
 
     connect( &_module_add,SIGNAL(clicked()),this,SLOT(module_add()) );
     connect( &_module_del,SIGNAL(clicked()),this,SLOT(module_del()) );
+    connect( &_field_add ,SIGNAL(clicked()),this,SLOT(field_add() ) );
 }
 
 MainWindow::~MainWindow()
@@ -137,4 +168,32 @@ void MainWindow::module_sort(int column)
 {
     Q_UNUSED(column);
     _module_table.sortByColumn( 0,Qt::AscendingOrder );
+}
+
+void MainWindow::field_add()
+{
+    QStringList types;
+    types << "int8" << "uint8" << "int16";
+    QComboBox *datatype = new QComboBox();
+    datatype->addItems( types );
+
+    QCheckBox *optional = new QCheckBox( "optonal" );
+
+    QTreeWidgetItem *item = new QTreeWidgetItem();
+    for ( int i = 0;i < 5;i ++ )
+    {
+        QStringList test;
+        test << "1" << "22" << "33";
+        QTreeWidgetItem *child = new QTreeWidgetItem( test );
+        child->setFlags( item->flags() | Qt::ItemIsEditable );
+
+        item->addChild( child );
+    }
+
+    _node_tree.addTopLevelItem( item );
+    _node_tree.setItemWidget( item,1,datatype );
+    _node_tree.setItemWidget( item,2,optional );
+
+    item->setFlags( item->flags() | Qt::ItemIsEditable );
+    _node_tree.editItem( item );
 }
