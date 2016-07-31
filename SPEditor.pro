@@ -13,8 +13,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    qnumbertablewidgetitem.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    qnumbertablewidgetitem.h
 
 FORMS    += mainwindow.ui

@@ -35,6 +35,10 @@ private:
     QTableWidget _function_table;
 
     QWidget _proto_group;
+public slots:
+    void module_add();
+    void module_del();
+    void module_sort( int column );
 };
 
 #endif // MAINWINDOW_H
