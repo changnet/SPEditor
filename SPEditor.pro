@@ -14,9 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    qnumbertablewidgetitem.cpp
+    qnumbertablewidgetitem.cpp \
+    qflatcombobox.cpp
 
 HEADERS  += mainwindow.h \
-    qnumbertablewidgetitem.h
+    qnumbertablewidgetitem.h \
+    qflatcombobox.h
 
 FORMS    += mainwindow.ui

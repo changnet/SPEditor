@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "qflatcombobox.h"
 #include "qnumbertablewidgetitem.h"
 
 #include <QDebug>
@@ -174,7 +175,8 @@ void MainWindow::field_add()
 {
     QStringList types;
     types << "int8" << "uint8" << "int16";
-    QComboBox *datatype = new QComboBox();
+    QFlatComboBox *datatype = new QFlatComboBox();
+    datatype->setFlat( true );
     datatype->addItems( types );
 
     QCheckBox *optional = new QCheckBox( "optonal" );
