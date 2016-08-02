@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "config.h"
 #include "qflatcombobox.h"
 #include "qnumbertablewidgetitem.h"
 
@@ -140,6 +141,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::module_add()
 {
+    class config &cf = config::instance();
     int row_count = _module_table.rowCount();
 
     /* before adding new module,you must finish last module */
