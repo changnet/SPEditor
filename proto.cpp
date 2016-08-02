@@ -53,9 +53,17 @@ bool proto::update_function( int module_id,int function_id,int sc,QString commen
     return save_module( module_id,*module_itr );
 }
 
-bool proto::update_proto( int module_id,int function_id,const struct proto_node *node )
+bool proto::update_proto( int module_id,int function_id,const QList< struct proto_node > node )
 {
-    return true;
+    QMap< int,proto_module >::iterator module_itr = _module_map.find( module_id );
+    if ( module_itr == _module_map.end() ) return false;
+
+    QMap< int,struct proto_function >::iterator func_itr = module_itr->_function.find( function_id );
+    if ( func_itr == module_itr->_function.end() ) return false;
+
+    func_itr->_node = node;
+
+    return save_module( module_id,*module_itr );
 }
 
 /* one module save to one file */

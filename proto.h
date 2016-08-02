@@ -41,7 +41,7 @@ public:
 
     bool update_module( int module_id,QString comment );
     bool update_function( int module_id,int function_id,int sc,QString comment );
-    bool update_proto( int module_id,int function_id,const struct proto_node *node );
+    bool update_proto( int module_id,int function_id,const QList< struct proto_node > node );
 private:
     proto();
     bool serailize();
