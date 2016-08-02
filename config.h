@@ -8,6 +8,8 @@ class config
 public:
     static void uninstance();
     static class config &instance();
+
+    const QString &source_path() { return _proto_source; }
 private:
     config();
 

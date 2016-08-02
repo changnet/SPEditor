@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "proto.h"
 #include "config.h"
 #include "qflatcombobox.h"
 #include "qnumbertablewidgetitem.h"
@@ -137,11 +138,13 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+
+    proto::uninstance();
+    config::uninstance();
 }
 
 void MainWindow::module_add()
 {
-    class config &cf = config::instance();
     int row_count = _module_table.rowCount();
 
     /* before adding new module,you must finish last module */
@@ -157,6 +160,8 @@ void MainWindow::module_add()
     QNumberTableWidgetItem *item = new QNumberTableWidgetItem();
     _module_table.setItem( row_count,0,item );
     _module_table.editItem( item );
+
+    proto::instance().update_module( 999,"login module" );
 }
 
 void MainWindow::module_del()

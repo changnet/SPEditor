@@ -22,6 +22,8 @@ config::config()
         {
             _datatype[k] = v;
         }
+
+        ++ itr;
     }
 
     rsetting.endGroup();
