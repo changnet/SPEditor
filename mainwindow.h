@@ -20,7 +20,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
+private:
+    void add_module_item( int id,QString comment );
 private:
     Ui::MainWindow *ui;
 
@@ -47,6 +48,8 @@ public slots:
     void module_del();
     void module_sort( int column );
     void field_add();
+    void moduleDoubleClicked(QTableWidgetItem *item);
+    void initialize();
 };
 
 #endif // MAINWINDOW_H

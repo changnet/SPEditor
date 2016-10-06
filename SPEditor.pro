@@ -17,12 +17,14 @@ SOURCES += main.cpp\
     qnumbertablewidgetitem.cpp \
     qflatcombobox.cpp \
     config.cpp \
-    proto.cpp
+    proto.cpp \
+    qmoduledialog.cpp
 
 HEADERS  += mainwindow.h \
     qnumbertablewidgetitem.h \
     qflatcombobox.h \
     config.h \
-    proto.h
+    proto.h \
+    qmoduledialog.h
 
 FORMS    += mainwindow.ui

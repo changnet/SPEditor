@@ -3,7 +3,9 @@
 #include "config.h"
 
 #include <QDir>
+#include <QDebug>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonObject>
 #include <QJsonDocument>
 
@@ -28,7 +30,6 @@ void proto::uninstance()
 
 proto::proto()
 {
-
 }
 
 bool proto::update_module( int module_id,QString comment )
@@ -144,4 +145,70 @@ void proto::encode_node(QJsonArray &nd_ay, const QList<proto_node> &nds )
 
         nd_ay.append( nd );
     }
+}
+
+bool proto::is_id_exist( int id ) const
+{
+    QMap< int,proto_module >::const_iterator itr = _module_map.find( id );
+
+    return itr != _module_map.cend();
+}
+
+void proto::delete_model(int module_id)
+{
+    _module_map.remove( module_id );
+
+    // delete the file too
+    const QString &path = config::instance().source_path();
+    QString file_name = QString( "%1/%2.json" ).arg( path ).arg( module_id );
+
+    QFile::remove( file_name );
+}
+
+bool proto::serailize()
+{
+    for ( QMap< int,proto_module >::const_iterator itr = _module_map.constBegin();itr != _module_map.constEnd();itr ++ )
+    {
+        save_module( itr.key(),itr.value() );
+    }
+
+    return true;
+}
+
+bool proto::load_module( QString path )
+{
+    QFile fi( path );
+
+    if ( !fi.open(QIODevice::ReadOnly) ) return false;
+
+    QByteArray data = fi.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson( data );
+
+    const QJsonObject &md = doc.object();
+    int id = md["module"].toInt();
+    QString comment = md["comment"].toString();
+
+    struct proto_module &module = _module_map[id];
+    module._comments = comment;
+
+    return true;
+}
+
+bool proto::deserialize()
+{
+    QDir dir; //Constructs a QDir pointing to the given directory path. If path is empty the program's working directory, ("."), is used
+
+    const QString &path = config::instance().source_path();
+    if ( !dir.cd( path ) ) return false;
+    QStringList filters;
+    filters << "*.json";
+    dir.setNameFilters(filters);
+
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); ++i)
+    {
+        load_module( list.at(i).filePath() );
+    }
+
+    return true;
 }

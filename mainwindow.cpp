@@ -4,15 +4,18 @@
 #include "proto.h"
 #include "config.h"
 #include "qflatcombobox.h"
+#include "qmoduledialog.h"
 #include "qnumbertablewidgetitem.h"
 
 #include <QDebug>
+#include <QTimer>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QStringList>
 #include <QRadioButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -41,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
     _module_table.verticalHeader()->setVisible( false );
     _module_table.setSelectionBehavior( QAbstractItemView::SelectRows );
     _module_table.setSelectionMode( QAbstractItemView::SingleSelection );
+    _module_table.setEditTriggers(QAbstractItemView::NoEditTriggers);   //禁止修改
 
     QHeaderView *module_header = _module_table.horizontalHeader();
     module_header->setSectionsClickable( true );
@@ -133,6 +137,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect( &_module_add,SIGNAL(clicked()),this,SLOT(module_add()) );
     connect( &_module_del,SIGNAL(clicked()),this,SLOT(module_del()) );
     connect( &_field_add ,SIGNAL(clicked()),this,SLOT(field_add() ) );
+    connect( &_module_table,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(moduleDoubleClicked(QTableWidgetItem*)) );
+
+    QTimer::singleShot( 500,this,SLOT(initialize()) );
 }
 
 MainWindow::~MainWindow()
@@ -145,23 +152,35 @@ MainWindow::~MainWindow()
 
 void MainWindow::module_add()
 {
+    QModuleDialog dia( this );
+    int r = dia.exec();
+    if ( QDialog::Accepted != r ) return;
+
+    QString id;
+    QString comment;
+    QString old_id;
+    dia.getData( id,comment,old_id );
+
+    int nid = id.toInt();
+    proto::instance().update_module( nid,comment );
+
+    add_module_item( nid,comment );
+}
+
+void MainWindow::add_module_item( int id,QString comment )
+{
     int row_count = _module_table.rowCount();
-
-    /* before adding new module,you must finish last module */
-    if ( row_count > 0 )
-    {
-        QTableWidgetItem *item = _module_table.item( row_count - 1,0 );
-        if ( !item || item->text() == "" ) return;
-    }
-
     _module_table.setRowCount( row_count + 1 );
     _module_table.selectRow( row_count );
 
     QNumberTableWidgetItem *item = new QNumberTableWidgetItem();
-    _module_table.setItem( row_count,0,item );
-    _module_table.editItem( item );
 
-    proto::instance().update_module( 999,"login module" );
+    item->setText( QString("%1").arg(id) );
+    _module_table.setItem( row_count,0,item );
+
+    QTableWidgetItem *comment_item = new QTableWidgetItem();
+    comment_item->setText( comment );
+    _module_table.setItem( row_count,1,comment_item );
 }
 
 void MainWindow::module_del()
@@ -169,7 +188,11 @@ void MainWindow::module_del()
     int row = _module_table.currentRow();
     if ( row < 0 ) return;  /* no select */
 
+    const QTableWidgetItem *item = _module_table.item( row,0 );
+    QString id = item->text();
+
     _module_table.removeRow( row );
+    proto::instance().delete_model( id.toInt() );
 }
 
 void MainWindow::module_sort(int column)
@@ -205,4 +228,45 @@ void MainWindow::field_add()
 
     item->setFlags( item->flags() | Qt::ItemIsEditable );
     _node_tree.editItem( item );
+}
+
+
+void MainWindow::moduleDoubleClicked(QTableWidgetItem *item)
+{
+    int row = item->row();
+
+    QTableWidgetItem *id_item = _module_table.item( row,0 );
+    QTableWidgetItem *cm_item = _module_table.item( row,1 );
+
+    QModuleDialog dia( this );
+    dia.setData( id_item->text(),cm_item->text() );
+    int r = dia.exec();
+    if ( QDialog::Accepted != r ) return;
+
+    QString id;
+    QString comment;
+    QString old_id;
+    dia.getData( id,comment,old_id );
+
+    int nid = id.toInt();
+    proto::instance().update_module( nid,comment );
+    if ( !old_id.isEmpty() && id != old_id )
+    {
+        proto::instance().delete_model( old_id.toInt() );
+    }
+
+    id_item->setText( id );
+    cm_item->setText( comment );
+}
+
+
+void MainWindow::initialize()
+{
+    proto::instance().deserialize();
+
+    const QMap< int,proto_module > &mp = proto::instance().modue_info();
+    for ( auto itr = mp.constBegin();itr != mp.constEnd();itr ++ )
+    {
+        add_module_item( itr.key(),itr.value()._comments );
+    }
 }
