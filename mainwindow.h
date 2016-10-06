@@ -46,7 +46,6 @@ private:
 public slots:
     void module_add();
     void module_del();
-    void module_sort( int column );
     void field_add();
     void moduleDoubleClicked(QTableWidgetItem *item);
     void initialize();

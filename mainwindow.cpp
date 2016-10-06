@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QStringList module_labels;
     module_labels << "module id" << "comments";
     _module_table.setHorizontalHeaderLabels( module_labels );
-    _module_table.setSortingEnabled( true );
+    //_module_table.setSortingEnabled( true );
     _module_table.verticalHeader()->setVisible( false );
     _module_table.setSelectionBehavior( QAbstractItemView::SelectRows );
     _module_table.setSelectionMode( QAbstractItemView::SingleSelection );
@@ -50,7 +50,6 @@ MainWindow::MainWindow(QWidget *parent) :
     module_header->setSectionsClickable( true );
     module_header->setStretchLastSection( true );
     module_header->setSortIndicator( 0,Qt::AscendingOrder );
-    connect( module_header,SIGNAL(sectionClicked(int)),this,SLOT(module_sort(int)) );
 
     _function_table.setColumnCount( 3 );
     QStringList function_labels;
@@ -181,6 +180,8 @@ void MainWindow::add_module_item( int id,QString comment )
     QTableWidgetItem *comment_item = new QTableWidgetItem();
     comment_item->setText( comment );
     _module_table.setItem( row_count,1,comment_item );
+
+    _module_table.sortItems( 0 );
 }
 
 void MainWindow::module_del()
@@ -193,12 +194,6 @@ void MainWindow::module_del()
 
     _module_table.removeRow( row );
     proto::instance().delete_model( id.toInt() );
-}
-
-void MainWindow::module_sort(int column)
-{
-    Q_UNUSED(column);
-    _module_table.sortByColumn( 0,Qt::AscendingOrder );
 }
 
 void MainWindow::field_add()
@@ -255,8 +250,10 @@ void MainWindow::moduleDoubleClicked(QTableWidgetItem *item)
         proto::instance().delete_model( old_id.toInt() );
     }
 
-    id_item->setText( id );
     cm_item->setText( comment );
+    id_item->setText( id );
+
+    _module_table.sortItems( 0 );
 }
 
 
