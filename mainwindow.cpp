@@ -23,9 +23,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->module_tbl->setColumnCount( module_field.length() );
     ui->module_tbl->setHorizontalHeaderLabels( module_field );
 
+    ui->module_tbl->verticalHeader()->setVisible( false );
+    ui->module_tbl->setSelectionBehavior( QAbstractItemView::SelectItems );
+    ui->module_tbl->setSelectionMode( QAbstractItemView::SingleSelection );
+
     const QList<QString> &command_field = conf->get_command_field();
     ui->command_tbl->setColumnCount( command_field.length() );
     ui->command_tbl->setHorizontalHeaderLabels( conf->get_command_field() );
+
+    ui->command_tbl->verticalHeader()->setVisible( false );
+    ui->command_tbl->setSelectionBehavior( QAbstractItemView::SelectItems );
+    ui->command_tbl->setSelectionMode( QAbstractItemView::SingleSelection );
 
     // AUTO-CONNECTION:
     // http://doc.qt.io/qt-5/designer-using-a-ui-file.html#widgets-and-dialogs-with-auto-connect
@@ -131,9 +139,21 @@ void MainWindow::on_command_del_clicked(bool check)
         return;
     }
 
-    const QTableWidgetItem *item = ui->module_tbl->item( row,0 );
-    QString cmd = item->text();
+    int cmd_row = ui->module_tbl->currentRow();
+    if ( cmd_row < 0 )
+    {
+        QMessageBox box;
+        box.setText( "no command slected" );
+        box.exec();
+        return;
+    }
 
+
+    const QTableWidgetItem *item = ui->module_tbl->item( row,0 );
+    const QTableWidgetItem *cmd_item = ui->command_tbl->item( cmd_row,0 );
+
+    proto::instance()->del_command( item->text(),cmd_item->text() );
+    ui->command_tbl->removeRow( cmd_row );
 }
 
 void MainWindow::update_command_view( QString &cmd )
@@ -160,4 +180,72 @@ void MainWindow::update_command_view( QString &cmd )
         }
         rows ++;
     }
+}
+
+void MainWindow::on_module_tbl_itemSelectionChanged()
+{
+    ui->statusBar->clearMessage();
+
+    int row = ui->module_tbl->currentRow();
+    if ( row < 0 ) return;
+
+    const QTableWidgetItem *item = ui->module_tbl->item( row,0 );
+
+    QString cmd = item->text();
+    QString field = "?";
+    QList<QTableWidgetItem *> select_item = ui->module_tbl->selectedItems();
+    if ( select_item.length() > 0 )
+    {
+        // as module_tbl is set in single select mode,only one item should be selected
+        int column = select_item.at(0)->column();
+
+        const QList<QString> &module_field = config::instance()->get_module_field();
+        if ( column >= 0 && column < module_field.length() )
+        {
+            field = module_field.at(column);
+        }
+    }
+
+    update_command_view( cmd );
+    ui->statusBar->showMessage( QString("select:%1-%2").arg(cmd).arg(field) );
+}
+
+void MainWindow::on_command_tbl_itemSelectionChanged()
+{
+    ui->statusBar->clearMessage();
+
+    int row = ui->module_tbl->currentRow();
+    if ( row < 0 ) return;
+
+    const QTableWidgetItem *item = ui->module_tbl->item( row,0 );
+
+    int cmd_row = ui->command_tbl->currentRow();
+    if ( cmd_row < 0 ) return;
+
+    const QTableWidgetItem *cmd_item = ui->command_tbl->item( cmd_row,0 );
+
+    QString field = "?";
+    QList<QTableWidgetItem *> select_item = ui->command_tbl->selectedItems();
+    if ( select_item.length() > 0 )
+    {
+        // as module_tbl is set in single select mode,only one item should be selected
+        ui->detail_edt->setPlainText( select_item.at(0)->text() );
+
+        int column = select_item.at(0)->column();
+
+        const QList<QString> &command_field = config::instance()->get_command_field();
+        if ( column >= 0 && column < command_field.length() )
+        {
+            field = command_field.at(column);
+        }
+    }
+
+    ui->statusBar->showMessage(
+                QString("select:%1-%2-%3").arg(
+                item->text()).arg(cmd_item->text()).arg(field) );
+}
+
+void MainWindow::on_submit_btn_clicked( bool check )
+{
+
 }

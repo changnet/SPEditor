@@ -20,8 +20,11 @@ public:
 
     void del_module( const QString &cmd );
     bool new_module( const QString &cmd,const Fields &fields );
+    bool update_module( const QString &cmd, const QString &key, const QString &val );
 
+    void del_command( const QString &module_cmd,const QString &cmd );
     bool new_command( const QString &module_cmd,const QString &cmd,const Fields &Fields );
+    bool update_command( const QString &module_cmd,const QString &cmd,const QString &key,QString &val );
 
     const CmdMap *get_module_cmd( const QString &cmd ) const;
 private:

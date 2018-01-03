@@ -66,13 +66,69 @@ bool proto::new_command( const QString &module_cmd,const QString &cmd,const Fiel
     return true;
 }
 
+void proto::del_command( const QString &module_cmd,const QString &cmd )
+{
+    QMap<QString,struct OneModule>::iterator itr = _module.find( module_cmd );
+    if ( itr == _module.end() )
+    {
+        return;
+    }
+
+    itr->_cmd_map.remove( cmd );
+}
+
 const CmdMap *proto::get_module_cmd( const QString &cmd ) const
 {
     QMap<QString,struct OneModule>::ConstIterator itr = _module.find( cmd );
-    if ( itr == _module.end() )
+    if ( itr == _module.constEnd() )
     {
         return NULL;
     }
 
     return &(itr->_cmd_map);
+}
+
+bool proto::update_module( const QString &cmd,const QString &key,const QString &val )
+{
+    QMap<QString,struct OneModule>::Iterator itr = _module.find( cmd );
+    if ( itr == _module.end() )
+    {
+        return false;
+    }
+
+    Fields &fields = itr->_fields;
+    if ( fields.find(key) == fields.constEnd() )
+    {
+        return false;
+    }
+
+    fields[key] = val;
+
+    return true;
+}
+
+bool proto::update_command( const QString &module_cmd,const QString &cmd,const QString &key,QString &val )
+{
+    QMap<QString,struct OneModule>::Iterator itr = _module.find( module_cmd );
+    if ( itr == _module.end() )
+    {
+        return false;
+    }
+
+    CmdMap &cmd_map = itr->_cmd_map;
+    CmdMap::Iterator cmd_itr = cmd_map.find( cmd );
+    if ( cmd_itr == cmd_map.end() )
+    {
+        return false;
+    }
+
+    Fields &fields = *cmd_itr;
+    if ( fields.find(key) == fields.constEnd() )
+    {
+        return false;
+    }
+
+    fields[key] = val;
+
+    return true;
 }

@@ -20,6 +20,9 @@ public slots:
     void on_module_del_clicked(bool check = false);
     void on_command_new_clicked(bool check = false);
     void on_command_del_clicked(bool check = false);
+    void on_submit_btn_clicked(bool check = false);
+    void on_module_tbl_itemSelectionChanged();
+    void on_command_tbl_itemSelectionChanged();
 private:
     void update_command_view( QString &cmd );
 private:
