@@ -4,12 +4,12 @@
 #include <QMap>
 
 typedef QMap<QString,QString> Fields;
-typedef QList<Fields> CmdList;
+typedef QMap<QString,Fields> CmdMap;
 
 struct OneModule
 {
     Fields _fields;
-    CmdList _cmdList;
+    CmdMap _cmd_map;
 };
 
 class proto
@@ -20,6 +20,10 @@ public:
 
     void del_module( const QString &cmd );
     bool new_module( const QString &cmd,const Fields &fields );
+
+    bool new_command( const QString &module_cmd,const QString &cmd,const Fields &Fields );
+
+    const CmdMap *get_module_cmd( const QString &cmd ) const;
 private:
     proto();
     QMap<QString,struct OneModule> _module;

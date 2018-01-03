@@ -46,3 +46,33 @@ void proto::del_module( const QString &cmd )
 
     // TODO: remove file from disk
 }
+
+bool proto::new_command( const QString &module_cmd,const QString &cmd,const Fields &Fields )
+{
+    QMap<QString,struct OneModule>::iterator itr = _module.find( module_cmd );
+    if ( itr == _module.end() )
+    {
+        return false;
+    }
+
+    CmdMap &cmd_map = itr->_cmd_map;
+    if ( !cmd_map.empty() && cmd_map.find( cmd ) != cmd_map.constEnd() )
+    {
+        return false;
+    }
+
+    cmd_map[cmd] = Fields;
+
+    return true;
+}
+
+const CmdMap *proto::get_module_cmd( const QString &cmd ) const
+{
+    QMap<QString,struct OneModule>::ConstIterator itr = _module.find( cmd );
+    if ( itr == _module.end() )
+    {
+        return NULL;
+    }
+
+    return &(itr->_cmd_map);
+}
