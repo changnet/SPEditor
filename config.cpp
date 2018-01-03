@@ -32,6 +32,15 @@ void config::read_conf()
         _command_field.append( rsetting.value("field").toString() );
     }
     rsetting.endArray();
+
+    if ( _module_field.length() > 0 )
+    {
+        _module_key = _module_field.at(0);
+    }
+    if ( _command_field.length() > 0 )
+    {
+        _command_key = _command_field.at(0);
+    }
 }
 
 void config::writeExample()
