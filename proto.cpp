@@ -6,6 +6,7 @@
 
 class proto *proto::_proto = NULL;
 
+// 避免在proto.h引入QXmlStreamReader,这个函数不作成员函数
 void save_fields( QXmlStreamWriter &stream,const Fields &fields )
 {
     Fields::ConstIterator itr = fields.constBegin();
@@ -187,9 +188,9 @@ bool proto::update_command( const QString &module_cmd,
     return true;
 }
 
-void proto::save_one( const QString &cmd,const struct OneModule &module )
+void proto::save_one( const QString &path,const struct OneModule &module )
 {
-    QFile file( QString("%1.xml").arg(cmd) );
+    QFile file( path );
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         return;
@@ -206,7 +207,9 @@ void proto::save_one( const QString &cmd,const struct OneModule &module )
     CmdMap::ConstIterator cmd_itr = module._cmd_map.constBegin();
     for ( ;cmd_itr != module._cmd_map.constEnd();cmd_itr ++ )
     {
+        stream.writeStartElement( "command" );
         save_fields( stream,cmd_itr.value() );
+        stream.writeEndElement();
     }
     stream.writeEndElement();
 
@@ -228,8 +231,57 @@ bool proto::save( const QString &path )
     QMap<QString,struct OneModule>::ConstIterator itr = _module.constBegin();
     for ( ;itr != _module.constEnd();itr ++ )
     {
-        save_one( itr.key(),itr.value() );
+        save_one( QString("%1/%2.xml").arg(path).arg(itr.key()),itr.value() );
     }
 
     return true;
+}
+
+void proto::load_one(const QString &path,const QString &module_key,const QString &key)
+{
+    QFile file( path );
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return;
+    }
+
+    QXmlStreamReader stream( file );
+
+    struct OneModule module;
+    // 文件的结构是固定的，暂不考虑其他结构的文件
+    if ( stream.readNextStartElement() && stream.name() == "root" )
+    {
+        while ( stream.readNextStartElement() )
+        {
+            const QString &name = stream.name();
+            if (name != "commands")
+            {
+                module._fields[name] = stream.readElementText();
+            }
+            else
+            {
+
+            }
+        }
+    }
+
+    file.close();
+}
+
+bool proto::load(const QString &path)
+{
+    QDir dir( path );
+    dir.setFilter(QDir::Files | QDir::NoSymLinks);
+
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); ++i)
+    {
+        QFileInfo fileInfo = list.at(i);
+        if ( fileInfo.completeSuffix() != "xml" )
+        {
+            continue;
+        }
+
+        load_one( path );
+    }
 }

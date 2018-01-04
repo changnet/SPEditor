@@ -370,7 +370,6 @@ void MainWindow::module_tbl_closeEditor(
     }
 }
 
-
 void MainWindow::command_tbl_closeEditor(
         QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
 {
@@ -386,4 +385,11 @@ void MainWindow::command_tbl_closeEditor(
         QTableWidgetItem *item = select_item.at(0);
         ui->command_tbl->editItem( item );
     }
+}
+
+void MainWindow::about()
+{
+   QMessageBox::about(this, tr("About QXmlStream Bookmarks"),
+            tr("The <b>QXmlStream Bookmarks</b> example demonstrates how to use Qt's "
+               "QXmlStream classes to read and write XML documents."));
 }

@@ -20,6 +20,7 @@ public:
     static class proto *instance();
 
     bool save(const QString &path);
+    bool load(const QString &path);
 
     const QString &get_error_text() const { return _error_text; }
 
@@ -36,6 +37,7 @@ public:
     const CmdMap *get_module_cmd( const QString &cmd ) const;
 private:
     proto();
+    void load_one(const QString &path, const QString &module_key, const QString &key);
     void save_one( const QString &cmd,const struct OneModule &module );
 
     QString _error_text;
