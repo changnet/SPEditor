@@ -88,7 +88,7 @@ const CmdMap *proto::get_module_cmd( const QString &cmd ) const
     return &(itr->_cmd_map);
 }
 
-bool proto::update_module( const QString &cmd,const QString &key,const QString &val )
+bool proto::update_module( const QString &cmd,const QString &key,const QString &val,bool update_key )
 {
     QMap<QString,struct OneModule>::Iterator itr = _module.find( cmd );
     if ( itr == _module.end() )
@@ -97,12 +97,28 @@ bool proto::update_module( const QString &cmd,const QString &key,const QString &
     }
 
     Fields &fields = itr->_fields;
-    if ( fields.find(key) == fields.constEnd() )
+    Fields::ConstIterator field_itr = fields.find(key);
+    if ( field_itr == fields.constEnd() || *field_itr == val )
     {
         return false;
     }
 
-    fields[key] = val;
+    // 如果更新Key,则不能与已有key冲突
+    if (update_key)
+    {
+        if ( _module.find( val ) != _module.constEnd() )
+        {
+            return false;
+        }
+
+        fields[key] = val;
+        _module[val] = *itr;
+        _module.remove( cmd );
+    }
+    else
+    {
+        fields[key] = val;
+    }
 
     return true;
 }

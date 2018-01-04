@@ -20,7 +20,8 @@ public:
 
     void del_module( const QString &cmd );
     bool new_module( const QString &cmd,const Fields &fields );
-    bool update_module( const QString &cmd, const QString &key, const QString &val );
+    bool update_module(const QString &cmd,
+        const QString &key, const QString &val , bool update_key = false);
 
     void del_command( const QString &module_cmd,const QString &cmd );
     bool new_command( const QString &module_cmd,const QString &cmd,const Fields &Fields );

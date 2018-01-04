@@ -38,6 +38,12 @@ MainWindow::MainWindow(QWidget *parent) :
     // AUTO-CONNECTION:
     // http://doc.qt.io/qt-5/designer-using-a-ui-file.html#widgets-and-dialogs-with-auto-connect
     // connect( ui->module_new,SIGNAL(clicked(bool)),this,SLOT(on_module_new(bool)) );
+
+    connect( ui->module_tbl->itemDelegate(),
+         SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)),
+         this,
+         SLOT(command_tbl_closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint))
+     );
 }
 
 MainWindow::~MainWindow()
@@ -184,6 +190,8 @@ void MainWindow::update_command_view( QString &cmd )
 
 void MainWindow::on_module_tbl_itemSelectionChanged()
 {
+    _module_select.clear();
+    _command_slect.clear();
     ui->statusBar->clearMessage();
 
     int row = ui->module_tbl->currentRow();
@@ -191,12 +199,13 @@ void MainWindow::on_module_tbl_itemSelectionChanged()
 
     const QTableWidgetItem *item = ui->module_tbl->item( row,0 );
 
-    QString cmd = item->text();
+    _module_select = item->text();
     QString field = "?";
     QList<QTableWidgetItem *> select_item = ui->module_tbl->selectedItems();
     if ( select_item.length() > 0 )
     {
         // as module_tbl is set in single select mode,only one item should be selected
+        ui->detail_edt->setPlainText( select_item.at(0)->text() );
         int column = select_item.at(0)->column();
 
         const QList<QString> &module_field = config::instance()->get_module_field();
@@ -206,8 +215,8 @@ void MainWindow::on_module_tbl_itemSelectionChanged()
         }
     }
 
-    update_command_view( cmd );
-    ui->statusBar->showMessage( QString("select:%1-%2").arg(cmd).arg(field) );
+    update_command_view( _module_select );
+    ui->statusBar->showMessage( QString("select:%1-%2").arg(_module_select).arg(field) );
 }
 
 void MainWindow::on_command_tbl_itemSelectionChanged()
@@ -223,6 +232,7 @@ void MainWindow::on_command_tbl_itemSelectionChanged()
     if ( cmd_row < 0 ) return;
 
     const QTableWidgetItem *cmd_item = ui->command_tbl->item( cmd_row,0 );
+    _command_slect = cmd_item->text();
 
     QString field = "?";
     QList<QTableWidgetItem *> select_item = ui->command_tbl->selectedItems();
@@ -247,5 +257,39 @@ void MainWindow::on_command_tbl_itemSelectionChanged()
 
 void MainWindow::on_submit_btn_clicked( bool check )
 {
+    Q_UNUSED(check);
+}
 
+void MainWindow::command_tbl_closeEditor(
+        QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
+{
+    Q_UNUSED(hint);
+    Q_UNUSED(editor);
+
+    int row = ui->module_tbl->currentRow();
+    if ( row < 0 ) return;
+
+    QList<QTableWidgetItem *> select_item = ui->module_tbl->selectedItems();
+    if ( select_item.length() <= 0 ) return;
+
+    // as module_tbl is set in single select mode,only one item should be selected
+    QTableWidgetItem *item = select_item.at(0);
+    int column = item->column();
+
+    const QList<QString> &module_field = config::instance()->get_module_field();
+    if ( column >= 0 && column < module_field.length() )
+    {
+        // 可能修改的就是module的key
+        bool ok = proto::instance()->update_module(
+            _module_select,module_field.at(column),select_item.at(0)->text(),0 == column );
+        if ( !ok )
+        {
+            QMessageBox box;
+            box.setText( "key dumplicate" );
+            box.exec();
+
+            ui->module_tbl->editItem( item );
+            return;
+        }
+    }
 }
