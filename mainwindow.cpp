@@ -42,6 +42,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect( ui->module_tbl->itemDelegate(),
          SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)),
          this,
+         SLOT(module_tbl_closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint))
+     );
+
+    connect( ui->command_tbl->itemDelegate(),
+         SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)),
+         this,
          SLOT(command_tbl_closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint))
      );
 }
@@ -255,24 +261,11 @@ void MainWindow::on_command_tbl_itemSelectionChanged()
                 item->text()).arg(cmd_item->text()).arg(field) );
 }
 
-void MainWindow::on_submit_btn_clicked( bool check )
+bool MainWindow::raw_update_module(const QString *ctx)
 {
-    Q_UNUSED(check);
-}
-
-void MainWindow::command_tbl_closeEditor(
-        QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
-{
-    Q_UNUSED(hint);
-    Q_UNUSED(editor);
-
-    int row = ui->module_tbl->currentRow();
-    if ( row < 0 ) return;
-
     QList<QTableWidgetItem *> select_item = ui->module_tbl->selectedItems();
-    if ( select_item.length() <= 0 ) return;
+    if ( select_item.length() <= 0 ) return false;
 
-    // as module_tbl is set in single select mode,only one item should be selected
     QTableWidgetItem *item = select_item.at(0);
     int column = item->column();
 
@@ -280,16 +273,115 @@ void MainWindow::command_tbl_closeEditor(
     if ( column >= 0 && column < module_field.length() )
     {
         // 可能修改的就是module的key
+        const QString &text = ctx ? *ctx : item->text();
         bool ok = proto::instance()->update_module(
-            _module_select,module_field.at(column),select_item.at(0)->text(),0 == column );
+            _module_select,module_field.at(column),text,0 == column );
         if ( !ok )
         {
             QMessageBox box;
-            box.setText( "key dumplicate" );
+            box.setText( proto::instance()->get_error_text() );
             box.exec();
-
-            ui->module_tbl->editItem( item );
-            return;
         }
+
+        return ok;
+    }
+
+    return false;
+}
+
+bool MainWindow::raw_update_command(const QString *ctx)
+{
+    int row = ui->module_tbl->currentRow();
+    if ( row < 0 ) return false;
+
+    QList<QTableWidgetItem *> select_item = ui->command_tbl->selectedItems();
+    if ( select_item.length() <= 0 ) return false;
+
+    // as module_tbl is set in single select mode,only one item should be selected
+    QTableWidgetItem *item = select_item.at(0);
+    int column = item->column();
+
+    const QList<QString> &command_field = config::instance()->get_command_field();
+    if ( column >= 0 && column < command_field.length() )
+    {
+        // 可能修改的就是module的key
+        const QString &text = ctx ? *ctx : item->text();
+        bool ok = proto::instance()->update_command(
+            _module_select,_command_slect,command_field.at(column),text,0 == column );
+        if ( !ok )
+        {
+            QMessageBox box;
+            box.setText( proto::instance()->get_error_text() );
+            box.exec();
+        }
+
+        return ok;
+    }
+
+    return false;
+}
+
+void MainWindow::on_submit_btn_clicked( bool check )
+{
+    Q_UNUSED(check);
+    if ( _module_select.isEmpty() ) return;
+
+    QTableWidget *widget = NULL;
+    const QString &ctx = ui->detail_edt->toPlainText();
+    if ( !_command_slect.isEmpty() )
+    {
+        if ( raw_update_command( &ctx ) )
+        {
+            widget = ui->command_tbl;
+        }
+    }
+    else
+    {
+        if ( raw_update_module( &ctx ) )
+        {
+            widget = ui->module_tbl;
+        }
+    }
+
+    if ( !widget ) return;
+
+    QList<QTableWidgetItem *> select_item = widget->selectedItems();
+    if ( select_item.length() <= 0 ) return;
+
+    select_item.at(0)->setText( ctx );
+}
+
+void MainWindow::module_tbl_closeEditor(
+        QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
+{
+    Q_UNUSED(hint);
+    Q_UNUSED(editor);
+
+    bool ok = raw_update_module( NULL );
+    if ( !ok )
+    {
+        QList<QTableWidgetItem *> select_item = ui->module_tbl->selectedItems();
+        if ( select_item.length() <= 0 ) return;
+
+        QTableWidgetItem *item = select_item.at(0);
+        ui->module_tbl->editItem( item );
+    }
+}
+
+
+void MainWindow::command_tbl_closeEditor(
+        QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
+{
+    Q_UNUSED(hint);
+    Q_UNUSED(editor);
+
+    bool ok = raw_update_command( NULL );
+    if ( !ok )
+    {
+        QList<QTableWidgetItem *> select_item = ui->command_tbl->selectedItems();
+        if ( select_item.length() <= 0 ) return;
+
+        QTableWidgetItem *item = select_item.at(0);
+        ui->command_tbl->editItem( item );
     }
 }

@@ -74,10 +74,14 @@
       <widget class="QTableWidget" name="command_tbl"/>
      </item>
      <item row="2" column="4">
-      <widget class="QPlainTextEdit" name="detail_edt"/>
+      <widget class="QPlainTextEdit" name="detail_edt">
+       <property name="lineWrapMode">
+        <enum>QPlainTextEdit::NoWrap</enum>
+       </property>
+      </widget>
      </item>
      <item row="0" column="0" colspan="3">
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="search_edt"/>
      </item>
      <item row="0" column="3">
       <widget class="QPushButton" name="search_btn">
