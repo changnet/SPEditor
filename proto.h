@@ -8,6 +8,7 @@ typedef QMap<QString,Fields> CmdMap;
 
 struct OneModule
 {
+    bool _modify;
     Fields _fields;
     CmdMap _cmd_map;
 };
@@ -17,6 +18,8 @@ class proto
 public:
     static void uninstance();
     static class proto *instance();
+
+    bool save(const QString &path);
 
     const QString &get_error_text() const { return _error_text; }
 
@@ -33,6 +36,7 @@ public:
     const CmdMap *get_module_cmd( const QString &cmd ) const;
 private:
     proto();
+    void save_one( const QString &cmd,const struct OneModule &module );
 
     QString _error_text;
     QMap<QString,struct OneModule> _module;

@@ -1,9 +1,19 @@
 #include "proto.h"
 
+#include <QDir>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
 class proto *proto::_proto = NULL;
+
+void save_fields( QXmlStreamWriter &stream,const Fields &fields )
+{
+    Fields::ConstIterator itr = fields.constBegin();
+    for ( ;itr != fields.constEnd();itr ++ )
+    {
+        stream.writeTextElement( itr.key(), itr.value() );
+    }
+}
 
 void proto::uninstance()
 {
@@ -158,6 +168,7 @@ bool proto::update_command( const QString &module_cmd,
 
     if ( update_key )
     {
+        if ( cmd == val ) return true; // no change
         if ( cmd_map.find( val ) != cmd_map.constEnd() )
         {
             _error_text = "dumplicate command new key";
@@ -171,6 +182,53 @@ bool proto::update_command( const QString &module_cmd,
     else
     {
         fields[key] = val;
+    }
+
+    return true;
+}
+
+void proto::save_one( const QString &cmd,const struct OneModule &module )
+{
+    QFile file( QString("%1.xml").arg(cmd) );
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        return;
+    }
+
+    QXmlStreamWriter stream( &file );
+    stream.setAutoFormatting( true );
+    stream.writeStartDocument();
+    stream.writeStartElement( "root" );
+
+    save_fields( stream,module._fields );
+
+    stream.writeStartElement( "commands" );
+    CmdMap::ConstIterator cmd_itr = module._cmd_map.constBegin();
+    for ( ;cmd_itr != module._cmd_map.constEnd();cmd_itr ++ )
+    {
+        save_fields( stream,cmd_itr.value() );
+    }
+    stream.writeEndElement();
+
+    stream.writeEndElement();
+    stream.writeEndDocument();
+
+    file.close();
+}
+
+bool proto::save( const QString &path )
+{
+    QDir dir;
+    if ( !dir.mkpath( path ) )
+    {
+        _error_text = "can not create dir";
+        return false;
+    }
+
+    QMap<QString,struct OneModule>::ConstIterator itr = _module.constBegin();
+    for ( ;itr != _module.constEnd();itr ++ )
+    {
+        save_one( itr.key(),itr.value() );
     }
 
     return true;

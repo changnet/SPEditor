@@ -54,6 +54,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    const QString &path = config::instance()->get_source_path();
+    proto::instance()->save( path );
     delete ui;
 }
 

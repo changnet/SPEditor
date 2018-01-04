@@ -23,7 +23,7 @@
       <height>271</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="gridLayout" columnstretch="1,1,1,1,1" columnminimumwidth="0,0,0,0,0">
+    <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0">
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
@@ -42,6 +42,51 @@
      <property name="horizontalSpacing">
       <number>6</number>
      </property>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="module_new">
+       <property name="text">
+        <string>new</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QLineEdit" name="search_edt"/>
+     </item>
+     <item row="2" column="0" colspan="6">
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="QTableWidget" name="module_tbl">
+        <property name="tabKeyNavigation">
+         <bool>false</bool>
+        </property>
+        <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+         <bool>true</bool>
+        </attribute>
+       </widget>
+       <widget class="QTableWidget" name="command_tbl"/>
+       <widget class="QPlainTextEdit" name="detail_edt">
+        <property name="lineWrapMode">
+         <enum>QPlainTextEdit::NoWrap</enum>
+        </property>
+       </widget>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPushButton" name="module_del">
+       <property name="text">
+        <string>del</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QPushButton" name="search_btn">
+       <property name="text">
+        <string>search</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="2">
       <widget class="QPushButton" name="command_new">
        <property name="text">
@@ -55,43 +100,6 @@
         <string>del</string>
        </property>
       </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QPushButton" name="module_del">
-       <property name="text">
-        <string>del</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QPushButton" name="module_new">
-       <property name="text">
-        <string>new</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2" colspan="2">
-      <widget class="QTableWidget" name="command_tbl"/>
-     </item>
-     <item row="2" column="4">
-      <widget class="QPlainTextEdit" name="detail_edt">
-       <property name="lineWrapMode">
-        <enum>QPlainTextEdit::NoWrap</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" colspan="3">
-      <widget class="QLineEdit" name="search_edt"/>
-     </item>
-     <item row="0" column="3">
-      <widget class="QPushButton" name="search_btn">
-       <property name="text">
-        <string>search</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="2">
-      <widget class="QTableWidget" name="module_tbl"/>
      </item>
      <item row="1" column="4">
       <widget class="QPushButton" name="submit_btn">
