@@ -7,6 +7,7 @@
 #include <QMessageBox>
 
 #define DEF_FIELD "undefine"
+#define MAIN_TITLE "Stream Protocol Editor"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -425,9 +426,14 @@ void MainWindow::command_tbl_closeEditor(
     }
 }
 
-void MainWindow::about()
+void MainWindow::on_action_about_triggered()
 {
-   QMessageBox::about(this, tr("About QXmlStream Bookmarks"),
-            tr("The <b>QXmlStream Bookmarks</b> example demonstrates how to use Qt's "
-               "QXmlStream classes to read and write XML documents."));
+    // support html
+   QMessageBox::about(this, tr(MAIN_TITLE),
+            tr("A custom protocol editor<br/>"
+               "<b>USAGE</b><br/>"
+               "1. the program will generate setting example file(setting.int) at first time running<br/>"
+               "2. custom your module and command field in setting.init<br/>"
+               )
+   );
 }

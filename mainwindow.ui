@@ -116,8 +116,10 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>false</bool>
+    <bool>true</bool>
    </attribute>
+   <addaction name="action_export"/>
+   <addaction name="action_about"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QMenuBar" name="menuBar">
@@ -126,34 +128,23 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuexport_all">
-    <property name="title">
-     <string>export all</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menuexport_srv">
-    <property name="title">
-     <string>export srv</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menuexport_clt">
-    <property name="title">
-     <string>export clt</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menuabout">
-    <property name="title">
-     <string>about</string>
-    </property>
-   </widget>
-   <addaction name="menuexport_all"/>
-   <addaction name="menuexport_srv"/>
-   <addaction name="menuexport_clt"/>
-   <addaction name="menuabout"/>
   </widget>
+  <action name="action_about">
+   <property name="text">
+    <string>about</string>
+   </property>
+  </action>
+  <action name="action_export">
+   <property name="text">
+    <string>export</string>
+   </property>
+   <property name="toolTip">
+    <string>export</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

@@ -17,7 +17,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void about();
+    void on_action_about_triggered();
     void on_module_new_clicked(bool check = false);
     void on_module_del_clicked(bool check = false);
     void on_command_new_clicked(bool check = false);
