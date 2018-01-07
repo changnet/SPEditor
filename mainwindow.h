@@ -29,6 +29,7 @@ public slots:
     void module_tbl_closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
     void command_tbl_closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
 private:
+    void update_module_view();
     void update_command_view( QString &cmd );
     bool raw_update_module(const QString *ctx);
     bool raw_update_command(const QString *ctx);

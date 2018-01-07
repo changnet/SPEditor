@@ -4,6 +4,12 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
+#include <QDebug>
+
+#define ROOT "root"
+#define SUBOBJECT "subobject"
+#define SUBOBJECTS "subobjects"
+
 class proto *proto::_proto = NULL;
 
 // 避免在proto.h引入QXmlStreamReader,这个函数不作成员函数
@@ -89,6 +95,20 @@ void proto::del_command( const QString &module_cmd,const QString &cmd )
     }
 
     itr->_cmd_map.remove( cmd );
+}
+
+const QList<const Fields*> proto::get_module()
+{
+    QList<const Fields*> list;
+
+    QMap<QString,struct OneModule>::ConstIterator itr = _module.begin();
+    while ( itr != _module.constEnd() )
+    {
+        list.append( &(itr->_fields) );
+        itr ++;
+    }
+
+    return list;
 }
 
 const CmdMap *proto::get_module_cmd( const QString &cmd ) const
@@ -199,15 +219,15 @@ void proto::save_one( const QString &path,const struct OneModule &module )
     QXmlStreamWriter stream( &file );
     stream.setAutoFormatting( true );
     stream.writeStartDocument();
-    stream.writeStartElement( "root" );
+    stream.writeStartElement( ROOT );
 
     save_fields( stream,module._fields );
 
-    stream.writeStartElement( "commands" );
+    stream.writeStartElement( SUBOBJECTS );
     CmdMap::ConstIterator cmd_itr = module._cmd_map.constBegin();
     for ( ;cmd_itr != module._cmd_map.constEnd();cmd_itr ++ )
     {
-        stream.writeStartElement( "command" );
+        stream.writeStartElement( SUBOBJECT );
         save_fields( stream,cmd_itr.value() );
         stream.writeEndElement();
     }
@@ -237,51 +257,93 @@ bool proto::save( const QString &path )
     return true;
 }
 
-void proto::load_one(const QString &path,const QString &module_key,const QString &key)
+bool proto::load_one(const QString &path,const QString &module_key,const QString &key)
 {
     QFile file( path );
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        return;
+        _error_text = "unable to open file";
+        return false;
     }
 
-    QXmlStreamReader stream( file );
+    bool success = true;
+    QXmlStreamReader stream( &file );
 
+    QString key_val;
     struct OneModule module;
     // 文件的结构是固定的，暂不考虑其他结构的文件
-    if ( stream.readNextStartElement() && stream.name() == "root" )
+    if ( stream.readNextStartElement() && stream.name() == ROOT )
     {
         while ( stream.readNextStartElement() )
         {
-            const QString &name = stream.name();
-            if (name != "commands")
+            const QString &name = stream.name().toString();
+            if ( name != SUBOBJECTS )
             {
-                module._fields[name] = stream.readElementText();
+                const QString &val = stream.readElementText();
+                module._fields[name] = val;
+                if ( name == module_key ) key_val = val;
             }
             else
             {
+                Fields fields;
+                QString cmd_key_val;
+                if ( stream.readNextStartElement() && stream.name() == SUBOBJECT )
+                {
+                    while ( stream.readNextStartElement() )
+                    {
+                        const QString &cmd_val = stream.readElementText();
+                        const QString &cmd_name = stream.name().toString();
+                        fields[cmd_name] = cmd_val;
 
+                        if ( key == cmd_name ) cmd_key_val = cmd_val;
+                    }
+                }
+
+                if ( cmd_key_val.isEmpty() )
+                {
+                    success = false;
+                    _error_text = "load file no cmd key value found";
+                }
+                else
+                {
+                    module._cmd_map[cmd_key_val] = fields;
+                }
             }
         }
     }
 
+    if ( key_val.isEmpty() )
+    {
+        success = false;
+        _error_text = "load file,no module key value found";
+    }
+    else if ( success )
+    {
+        _module[key_val] = module;
+    }
+
     file.close();
+
+    return success;
 }
 
-bool proto::load(const QString &path)
+bool proto::load( const QString &path,const QString &module_key,const QString &key )
 {
     QDir dir( path );
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
 
+    bool success = true;
     QFileInfoList list = dir.entryInfoList();
     for (int i = 0; i < list.size(); ++i)
     {
-        QFileInfo fileInfo = list.at(i);
+        const QFileInfo &fileInfo = list.at(i);
         if ( fileInfo.completeSuffix() != "xml" )
         {
             continue;
         }
 
-        load_one( path );
+        if ( !load_one( fileInfo.filePath(),module_key,key ) ) success = false;
     }
+
+    return success;
 }

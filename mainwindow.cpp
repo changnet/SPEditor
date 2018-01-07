@@ -50,6 +50,18 @@ MainWindow::MainWindow(QWidget *parent) :
          this,
          SLOT(command_tbl_closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint))
      );
+
+    class proto *pt = proto::instance();
+    bool ok = pt->load(
+                conf->get_source_path(),conf->get_module_key(),conf->get_command_key() );
+    if ( ok )
+    {
+        update_module_view();
+    }
+    else
+    {
+        ui->statusBar->showMessage( pt->get_error_text(),0 );
+    }
 }
 
 MainWindow::~MainWindow()
@@ -168,6 +180,32 @@ void MainWindow::on_command_del_clicked(bool check)
 
     proto::instance()->del_command( item->text(),cmd_item->text() );
     ui->command_tbl->removeRow( cmd_row );
+}
+
+void MainWindow::update_module_view()
+{
+    ui->module_tbl->clearContents();
+    const QList<const Fields*> list = proto::instance()->get_module();
+    if ( list.length() <= 0 ) return;
+
+    class config *conf = config::instance();
+    const QList<QString> &module_field = conf->get_module_field();
+
+    ui->module_tbl->setRowCount( list.length() );
+    for ( int idx = 0;idx < list.length();idx ++ )
+    {
+        const Fields *fields = list.at( idx );
+        if ( !fields ) continue;
+
+        for ( int field_idx = 0;field_idx < module_field.length();field_idx ++ )
+        {
+            Fields::ConstIterator itr = fields->find( module_field.at(field_idx) );
+            if ( itr != fields->constEnd() )
+            {
+                ui->module_tbl->setItem( idx,field_idx,new QTableWidgetItem(*itr) );
+            }
+        }
+    }
 }
 
 void MainWindow::update_command_view( QString &cmd )
