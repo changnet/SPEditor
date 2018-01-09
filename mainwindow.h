@@ -15,7 +15,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
 public slots:
     void on_action_about_triggered();
     void on_module_new_clicked(bool check = false);
@@ -26,8 +25,8 @@ public slots:
     void on_module_tbl_itemSelectionChanged();
     void on_command_tbl_itemSelectionChanged();
 
-    void module_tbl_closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
-    void command_tbl_closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
+    void module_tbl_commit_data(QWidget *editor);
+    void command_tbl_commit_data(QWidget *editor);
 private:
     void update_module_view();
     void update_command_view( QString &cmd );

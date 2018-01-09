@@ -27,12 +27,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     config.cpp \
-    proto.cpp
+    proto.cpp \
+    qmoduledelegate.cpp
 
 HEADERS += \
         mainwindow.h \
     config.h \
-    proto.h
+    proto.h \
+    qmoduledelegate.h
 
 FORMS += \
         mainwindow.ui

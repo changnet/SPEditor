@@ -3,6 +3,7 @@
 
 #include "proto.h"
 #include "config.h"
+#include "qmoduledelegate.h"
 
 #include <QMessageBox>
 
@@ -21,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
     class config *conf = config::instance();
 
     const QList<QString> &module_field = conf->get_module_field();
+    // Any existing delegate will be removed, but not deleted
+    ui->module_tbl->setItemDelegate( new QModuleDelegate() );
     ui->module_tbl->setColumnCount( module_field.length() );
     ui->module_tbl->setHorizontalHeaderLabels( module_field );
 
@@ -31,6 +34,8 @@ MainWindow::MainWindow(QWidget *parent) :
     const QList<QString> &command_field = conf->get_command_field();
     ui->command_tbl->setColumnCount( command_field.length() );
     ui->command_tbl->setHorizontalHeaderLabels( conf->get_command_field() );
+//    ui->command_tbl->horizontalHeader()
+//            ->setStyleSheet("QHeaderView::section{background:skyblue;}"); //设置表头背景色
 
     ui->command_tbl->verticalHeader()->setVisible( false );
     ui->command_tbl->setSelectionBehavior( QAbstractItemView::SelectItems );
@@ -41,15 +46,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // connect( ui->module_new,SIGNAL(clicked(bool)),this,SLOT(on_module_new(bool)) );
 
     connect( ui->module_tbl->itemDelegate(),
-         SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)),
+         SIGNAL(commitData(QWidget*)),
          this,
-         SLOT(module_tbl_closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint))
+         SLOT(module_tbl_commit_data(QWidget*))
      );
 
     connect( ui->command_tbl->itemDelegate(),
-         SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)),
+         SIGNAL(commitData(QWidget*)),
          this,
-         SLOT(command_tbl_closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint))
+         SLOT(command_tbl_commit_data(QWidget*))
      );
 
     class proto *pt = proto::instance();
@@ -392,10 +397,8 @@ void MainWindow::on_submit_btn_clicked( bool check )
     select_item.at(0)->setText( ctx );
 }
 
-void MainWindow::module_tbl_closeEditor(
-        QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
+void MainWindow::module_tbl_commit_data(QWidget *editor)
 {
-    Q_UNUSED(hint);
     Q_UNUSED(editor);
 
     bool ok = raw_update_module( NULL );
@@ -409,10 +412,8 @@ void MainWindow::module_tbl_closeEditor(
     }
 }
 
-void MainWindow::command_tbl_closeEditor(
-        QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
+void MainWindow::command_tbl_commit_data(QWidget *editor)
 {
-    Q_UNUSED(hint);
     Q_UNUSED(editor);
 
     bool ok = raw_update_command( NULL );
