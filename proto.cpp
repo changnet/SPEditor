@@ -283,20 +283,18 @@ bool proto::load_one(const QString &path,const QString &module_key,const QString
                 module._fields[name] = val;
                 if ( name == module_key ) key_val = val;
             }
-            else
+            else if ( stream.readNextStartElement() && stream.name() == SUBOBJECT )
             {
                 Fields fields;
                 QString cmd_key_val;
-                if ( stream.readNextStartElement() && stream.name() == SUBOBJECT )
-                {
-                    while ( stream.readNextStartElement() )
-                    {
-                        const QString &cmd_val = stream.readElementText();
-                        const QString &cmd_name = stream.name().toString();
-                        fields[cmd_name] = cmd_val;
 
-                        if ( key == cmd_name ) cmd_key_val = cmd_val;
-                    }
+                while ( stream.readNextStartElement() )
+                {
+                    const QString &cmd_val = stream.readElementText();
+                    const QString &cmd_name = stream.name().toString();
+                    fields[cmd_name] = cmd_val;
+
+                    if ( key == cmd_name ) cmd_key_val = cmd_val;
                 }
 
                 if ( cmd_key_val.isEmpty() )

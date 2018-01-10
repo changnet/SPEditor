@@ -3,7 +3,6 @@
 
 #include "proto.h"
 #include "config.h"
-#include "qmoduledelegate.h"
 
 #include <QMessageBox>
 
@@ -16,14 +15,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // 在designer中的layout与centralwidget没有建立联系，手动建立
-    ui->centralWidget->setLayout(ui->gridLayout);
-
     class config *conf = config::instance();
 
     const QList<QString> &module_field = conf->get_module_field();
-    // Any existing delegate will be removed, but not deleted
-    ui->module_tbl->setItemDelegate( new QModuleDelegate() );
     ui->module_tbl->setColumnCount( module_field.length() );
     ui->module_tbl->setHorizontalHeaderLabels( module_field );
 
@@ -104,7 +98,9 @@ void MainWindow::on_module_new_clicked(bool check)
     ui->module_tbl->setRowCount( rows + 1 );
     for ( int idx = 0;idx < module_field.length();idx ++ )
     {
-        ui->module_tbl->setItem( rows,idx,new QTableWidgetItem(DEF_FIELD) );
+        QTableWidgetItem *item = new QTableWidgetItem(DEF_FIELD);
+        item->setData(Qt::UserRole,DEF_FIELD);
+        ui->module_tbl->setItem( rows,idx,item );
     }
 }
 
@@ -208,7 +204,9 @@ void MainWindow::update_module_view()
             Fields::ConstIterator itr = fields->find( module_field.at(field_idx) );
             if ( itr != fields->constEnd() )
             {
-                ui->module_tbl->setItem( idx,field_idx,new QTableWidgetItem(*itr) );
+                QTableWidgetItem *item = new QTableWidgetItem(*itr);
+                item->setData(Qt::UserRole,*itr);
+                ui->module_tbl->setItem( idx,field_idx,item );
             }
         }
     }
@@ -233,7 +231,9 @@ void MainWindow::update_command_view( QString &cmd )
             Fields::ConstIterator cmd_itr = fields.find( command_field.at(idx) );
             if ( cmd_itr != fields.constEnd() )
             {
-                ui->command_tbl->setItem( rows,idx,new QTableWidgetItem(*cmd_itr) );
+                QTableWidgetItem *item = new QTableWidgetItem(*cmd_itr);
+                item->setData(Qt::UserRole,*cmd_itr);
+                ui->command_tbl->setItem( rows,idx,item );
             }
         }
         rows ++;
@@ -307,27 +307,24 @@ void MainWindow::on_command_tbl_itemSelectionChanged()
                 item->text()).arg(cmd_item->text()).arg(field) );
 }
 
-bool MainWindow::raw_update_module(const QString *ctx)
+QTableWidgetItem *MainWindow::get_select_item(QTableWidget *widget)
 {
-    QList<QTableWidgetItem *> select_item = ui->module_tbl->selectedItems();
-    if ( select_item.length() <= 0 ) return false;
+    QList<QTableWidgetItem *> select_item = widget->selectedItems();
+    if ( select_item.length() <= 0 ) return NULL;
 
-    QTableWidgetItem *item = select_item.at(0);
+    return select_item.at(0);
+}
+
+bool MainWindow::raw_update_module(QTableWidgetItem *item, const QString &ctx)
+{
     int column = item->column();
 
     const QList<QString> &module_field = config::instance()->get_module_field();
     if ( column >= 0 && column < module_field.length() )
     {
         // 可能修改的就是module的key
-        const QString &text = ctx ? *ctx : item->text();
         bool ok = proto::instance()->update_module(
-            _module_select,module_field.at(column),text,0 == column );
-        if ( !ok )
-        {
-            QMessageBox box;
-            box.setText( proto::instance()->get_error_text() );
-            box.exec();
-        }
+            _module_select,module_field.at(column),ctx,0 == column );
 
         return ok;
     }
@@ -335,31 +332,16 @@ bool MainWindow::raw_update_module(const QString *ctx)
     return false;
 }
 
-bool MainWindow::raw_update_command(const QString *ctx)
+bool MainWindow::raw_update_command(QTableWidgetItem *item,const QString &ctx)
 {
-    int row = ui->module_tbl->currentRow();
-    if ( row < 0 ) return false;
-
-    QList<QTableWidgetItem *> select_item = ui->command_tbl->selectedItems();
-    if ( select_item.length() <= 0 ) return false;
-
-    // as module_tbl is set in single select mode,only one item should be selected
-    QTableWidgetItem *item = select_item.at(0);
     int column = item->column();
 
     const QList<QString> &command_field = config::instance()->get_command_field();
     if ( column >= 0 && column < command_field.length() )
     {
         // 可能修改的就是module的key
-        const QString &text = ctx ? *ctx : item->text();
         bool ok = proto::instance()->update_command(
-            _module_select,_command_slect,command_field.at(column),text,0 == column );
-        if ( !ok )
-        {
-            QMessageBox box;
-            box.setText( proto::instance()->get_error_text() );
-            box.exec();
-        }
+            _module_select,_command_slect,command_field.at(column),ctx,0 == column );
 
         return ok;
     }
@@ -372,43 +354,38 @@ void MainWindow::on_submit_btn_clicked( bool check )
     Q_UNUSED(check);
     if ( _module_select.isEmpty() ) return;
 
-    QTableWidget *widget = NULL;
+    bool is_command = !_command_slect.isEmpty();
+    QTableWidgetItem *item = is_command ?
+                get_select_item( ui->command_tbl ) : get_select_item( ui->module_tbl );
+    if ( !item ) return;
+
     const QString &ctx = ui->detail_edt->toPlainText();
-    if ( !_command_slect.isEmpty() )
+    bool ok = is_command ?
+                raw_update_command( item,ctx ) : raw_update_module( item,ctx );
+    if ( !ok )
     {
-        if ( raw_update_command( &ctx ) )
-        {
-            widget = ui->command_tbl;
-        }
-    }
-    else
-    {
-        if ( raw_update_module( &ctx ) )
-        {
-            widget = ui->module_tbl;
-        }
+        QMessageBox box;
+        box.setText( proto::instance()->get_error_text() );
+        box.exec();
+
+        return;
     }
 
-    if ( !widget ) return;
-
-    QList<QTableWidgetItem *> select_item = widget->selectedItems();
-    if ( select_item.length() <= 0 ) return;
-
-    select_item.at(0)->setText( ctx );
+    item->setText( ctx );
 }
 
 void MainWindow::module_tbl_commit_data(QWidget *editor)
 {
     Q_UNUSED(editor);
 
-    bool ok = raw_update_module( NULL );
+    QTableWidgetItem *item = get_select_item( ui->module_tbl );
+    if ( !item ) return;
+
+    bool ok = raw_update_module( item,item->text() );
     if ( !ok )
     {
-        QList<QTableWidgetItem *> select_item = ui->module_tbl->selectedItems();
-        if ( select_item.length() <= 0 ) return;
-
-        QTableWidgetItem *item = select_item.at(0);
-        ui->module_tbl->editItem( item );
+        // restore old data
+        item->setText( item->data(Qt::UserRole).toString() );
     }
 }
 
@@ -416,14 +393,14 @@ void MainWindow::command_tbl_commit_data(QWidget *editor)
 {
     Q_UNUSED(editor);
 
-    bool ok = raw_update_command( NULL );
+    QTableWidgetItem *item = get_select_item( ui->command_tbl );
+    if ( !item ) return;
+
+    bool ok = raw_update_command( item,item->text() );
     if ( !ok )
     {
-        QList<QTableWidgetItem *> select_item = ui->command_tbl->selectedItems();
-        if ( select_item.length() <= 0 ) return;
-
-        QTableWidgetItem *item = select_item.at(0);
-        ui->command_tbl->editItem( item );
+        // restore old data
+        item->setText( item->data(Qt::UserRole).toString() );
     }
 }
 

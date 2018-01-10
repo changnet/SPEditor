@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTableWidgetItem>
 #include <QAbstractItemDelegate>
 
 namespace Ui {
@@ -30,8 +31,9 @@ public slots:
 private:
     void update_module_view();
     void update_command_view( QString &cmd );
-    bool raw_update_module(const QString *ctx);
-    bool raw_update_command(const QString *ctx);
+    bool raw_update_module(QTableWidgetItem *item,const QString &ctx);
+    bool raw_update_command(QTableWidgetItem *item, const QString &ctx);
+    QTableWidgetItem *get_select_item(QTableWidget *widget);
 private:
     Ui::MainWindow *ui;
 
