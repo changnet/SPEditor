@@ -27,12 +27,15 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     config.cpp \
-    proto.cpp
+    proto.cpp \
+    qsearchdialog.cpp
 
 HEADERS += \
         mainwindow.h \
     config.h \
-    proto.h
+    proto.h \
+    qsearchdialog.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    qsearchdialog.ui

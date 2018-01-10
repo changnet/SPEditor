@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    _search_dialog = NULL;
+
     class config *conf = config::instance();
 
     const QList<QString> &module_field = conf->get_module_field();
@@ -69,6 +71,7 @@ MainWindow::~MainWindow()
     const QString &path = config::instance()->get_source_path();
     proto::instance()->save( path );
     delete ui;
+    delete _search_dialog;
 }
 
 void MainWindow::on_module_new_clicked(bool check)
@@ -414,4 +417,67 @@ void MainWindow::on_action_about_triggered()
                "2. custom your module and command field in setting.init<br/>"
                )
    );
+}
+
+void MainWindow::on_search_btn_clicked(bool check)
+{
+    Q_UNUSED(check);
+
+    const QString &ctx = ui->search_edt->text();
+    if ( ctx.isEmpty() ) return;
+
+    if ( !_search_dialog )
+    {
+        _search_dialog = new QSearchDialog(this );
+    }
+
+    QList<search_ctx> list;
+
+    do_search( ctx,list );
+    _search_dialog->update_content( ctx,list );
+}
+
+bool search_fields(const Fields &fields,const QString &ctx,QString &key,QString &val)
+{
+    Fields::ConstIterator itr = fields.constBegin();
+    for ( ;itr != fields.constEnd();itr ++ )
+    {
+        const QString &value = itr.value();
+        if ( value.contains(ctx,Qt::CaseInsensitive) )
+        {
+            key = itr.key();
+            val = value;
+            return true;
+        }
+    }
+    return false;
+}
+
+void MainWindow::do_search( const QString &ctx,QList<search_ctx> &list )
+{
+    const class proto *pto = proto::instance();
+    const class config *conf = config::instance();
+
+    const QList<const Fields*> list = proto::instance()->get_module();
+    if ( list.length() <= 0 ) return;
+
+    const QString &module_key = conf->get_module_key();
+    const QString &command_key = conf->get_command_key();
+
+    for ( int idx = 0;idx < list.length();idx ++)
+    {
+        const Fields *module_fields;
+        Fields::ConstIterator module_itr = module_fields->find( module_key );
+        if ( module_itr == module_fields->constEnd() ) continue; // should not happen
+
+        const CmdMap *cmd_map = pto->get_module_cmd( *module_itr );
+        if ( cmd_map )
+        {
+            CmdMap::ConstIterator cmd_itr = cmd_map->constBegin();
+            for ( ;cmd_itr != cmd_map->constEnd();cmd_itr ++ )
+            {
+                const Fields &fields = *(itr);
+            }
+        }
+    }
 }
