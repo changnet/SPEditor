@@ -82,11 +82,21 @@
        <property name="tabKeyNavigation">
         <bool>false</bool>
        </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
        <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
         <bool>true</bool>
        </attribute>
       </widget>
-      <widget class="QTableWidget" name="command_tbl"/>
+      <widget class="QTableWidget" name="command_tbl">
+       <property name="showDropIndicator" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
       <widget class="QPlainTextEdit" name="detail_edt">
        <property name="lineWrapMode">
         <enum>QPlainTextEdit::NoWrap</enum>

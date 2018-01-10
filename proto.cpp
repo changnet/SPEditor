@@ -22,6 +22,33 @@ void save_fields( QXmlStreamWriter &stream,const Fields &fields )
     }
 }
 
+
+bool load_fields(QXmlStreamReader &stream,CmdMap &cmd_map,const QString &key)
+{
+    Fields fields;
+    QString cmd_key_val;
+
+    while ( stream.readNextStartElement() )
+    {
+        const QString &cmd_val = stream.readElementText();
+        const QString &cmd_name = stream.name().toString();
+        fields[cmd_name] = cmd_val;
+
+        if ( key == cmd_name ) cmd_key_val = cmd_val;
+    }
+
+    if ( cmd_key_val.isEmpty() )
+    {
+        return false;
+    }
+    else
+    {
+        cmd_map[cmd_key_val] = fields;
+        return true;
+    }
+}
+
+
 void proto::uninstance()
 {
     if ( _proto )
@@ -283,28 +310,16 @@ bool proto::load_one(const QString &path,const QString &module_key,const QString
                 module._fields[name] = val;
                 if ( name == module_key ) key_val = val;
             }
-            else if ( stream.readNextStartElement() && stream.name() == SUBOBJECT )
+            else
             {
-                Fields fields;
-                QString cmd_key_val;
-
-                while ( stream.readNextStartElement() )
+                while (stream.readNextStartElement() && stream.name() == SUBOBJECT)
                 {
-                    const QString &cmd_val = stream.readElementText();
-                    const QString &cmd_name = stream.name().toString();
-                    fields[cmd_name] = cmd_val;
-
-                    if ( key == cmd_name ) cmd_key_val = cmd_val;
-                }
-
-                if ( cmd_key_val.isEmpty() )
-                {
-                    success = false;
-                    _error_text = "load file no cmd key value found";
-                }
-                else
-                {
-                    module._cmd_map[cmd_key_val] = fields;
+                    success = load_fields( stream,module._cmd_map,key);
+                    if ( !success )
+                    {
+                        _error_text = "load file no cmd key value found";
+                        break;
+                    }
                 }
             }
         }
