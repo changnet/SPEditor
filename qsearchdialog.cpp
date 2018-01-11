@@ -37,3 +37,14 @@ void QSearchDialog::update_content( const QString &ctx,const QList<search_ctx> &
         ui->search_tbl->setItem( idx,3,new QTableWidgetItem(sctx._content) );
     }
 }
+
+void QSearchDialog::on_search_tbl_cellDoubleClicked(int row, int column)
+{
+    Q_UNUSED(column);
+    const QTableWidgetItem *module_item = ui->search_tbl->item( row,0 );
+    const QTableWidgetItem *command_item = ui->search_tbl->item( row,1 );
+    const QTableWidgetItem *field_item = ui->search_tbl->item( row,2 );
+
+    emit result_double_click(
+        module_item->text(),command_item->text(),field_item->text() );
+}

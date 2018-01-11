@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    _search_dialog = NULL;
+    _search_dialog = new QSearchDialog( this );
 
     class config *conf = config::instance();
 
@@ -52,6 +52,10 @@ MainWindow::MainWindow(QWidget *parent) :
          this,
          SLOT(command_tbl_commit_data(QWidget*))
      );
+
+    connect(_search_dialog,
+            SIGNAL(result_double_click(QString,QString,QString)),
+            this,SLOT(show_search_result(QString,QString,QString)));
 
     class proto *pt = proto::instance();
     bool ok = pt->load(
@@ -453,31 +457,112 @@ bool search_fields(const Fields &fields,const QString &ctx,QString &key,QString 
     return false;
 }
 
+/* 搜索规则：
+ * 1. 优先搜索command
+ * 2. 同一个module或command中不同field中出现关键字时，只显示第一个field
+ */
 void MainWindow::do_search( const QString &ctx,QList<search_ctx> &list )
 {
     const class proto *pto = proto::instance();
     const class config *conf = config::instance();
 
-    const QList<const Fields*> list = proto::instance()->get_module();
-    if ( list.length() <= 0 ) return;
+    const QList<const Fields*> module_list = proto::instance()->get_module();
+    if ( module_list.length() <= 0 ) return;
 
     const QString &module_key = conf->get_module_key();
-    const QString &command_key = conf->get_command_key();
 
-    for ( int idx = 0;idx < list.length();idx ++)
+    for ( int idx = 0;idx < module_list.length();idx ++)
     {
-        const Fields *module_fields;
+        QString key;
+        QString val;
+        const Fields *module_fields = module_list.at( idx );
         Fields::ConstIterator module_itr = module_fields->find( module_key );
         if ( module_itr == module_fields->constEnd() ) continue; // should not happen
 
         const CmdMap *cmd_map = pto->get_module_cmd( *module_itr );
-        if ( cmd_map )
+        if ( cmd_map ) // 搜索command
         {
             CmdMap::ConstIterator cmd_itr = cmd_map->constBegin();
             for ( ;cmd_itr != cmd_map->constEnd();cmd_itr ++ )
             {
-                const Fields &fields = *(itr);
+                if ( search_fields(*cmd_itr,ctx,key,val) )
+                {
+                    struct search_ctx sctx;
+                    sctx._module = *module_itr;
+                    sctx._command = cmd_itr.key();
+                    sctx._field   = key;
+                    sctx._content = val;
+                    list.append( sctx );
+                }
+            }
+        }
+
+        if ( search_fields(*module_fields,ctx,key,val) )
+        {
+            struct search_ctx sctx;
+            sctx._module = *module_itr;
+            sctx._command = "";
+            sctx._field   = key;
+            sctx._content = val;
+            list.append( sctx );
+        }
+    }
+}
+
+void MainWindow::show_search_result(
+    const QString &module,const QString &command,const QString &field)
+{
+    const config *conf = config::instance();
+    //  找出module_key在哪一列
+    const QString &module_key = conf->get_module_key();
+    const QList<QString> &module_field = conf->get_module_field();
+    int module_column = module_field.indexOf( module_key );
+
+    // 找出command_key在哪一列
+    const QString &command_key = conf->get_command_key();
+    const QList<QString> &command_field = conf->get_command_field();
+    int command_column = command_field.indexOf( command_key );
+
+    if ( module_column < 0 || command_column < 0 ) return;
+
+    int select_row = -1;
+    QTableWidget *select_tbl = NULL;
+    const QList<QString> *select_field = NULL;
+    for ( int idx = 0;idx < ui->module_tbl->rowCount();idx ++ )
+    {
+        const QTableWidgetItem *item = ui->module_tbl->item( idx,module_column );
+        if ( item && item->text() == module )
+        {
+            select_row= idx;
+            select_tbl = ui->module_tbl;
+            select_field = &module_field;
+            break;
+        }
+    }
+
+    if ( select_row < 0 ) return;
+
+    if (!command.isEmpty())
+    {
+        ui->module_tbl->setCurrentCell(
+                select_row,module_column,QItemSelectionModel::ClearAndSelect );
+        for ( int idx = 0;idx < ui->command_tbl->rowCount();idx ++ )
+        {
+            const QTableWidgetItem *item = ui->command_tbl->item( idx,command_column );
+            if ( item && item->text() == command )
+            {
+                select_row = idx;
+                select_tbl = ui->command_tbl;
+                select_field = &command_field;
+                break;
             }
         }
     }
+
+    if ( select_row < 0 || !select_tbl || !select_field ) return;
+
+    int select_column = select_field->indexOf( field );
+    if ( select_column < 0 ) return;
+
+    select_tbl->setCurrentCell( select_row,select_column,QItemSelectionModel::ClearAndSelect );
 }

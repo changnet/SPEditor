@@ -80,6 +80,7 @@ bool proto::new_module( const QString &cmd,const Fields &fields )
         return false;
     }
 
+    _module[cmd]._modify = true;
     _module[cmd]._fields = fields;
 
     return true;
@@ -89,7 +90,7 @@ void proto::del_module( const QString &cmd )
 {
     _module.remove( cmd );
 
-    // TODO: remove file from disk
+    _deleting[cmd] = 1;//remove file from disk
 }
 
 bool proto::new_command( const QString &module_cmd,const QString &cmd,const Fields &Fields )
@@ -108,6 +109,7 @@ bool proto::new_command( const QString &module_cmd,const QString &cmd,const Fiel
         return false;
     }
 
+    itr->_modify = true;
     cmd_map[cmd] = Fields;
 
     return true;
@@ -121,6 +123,7 @@ void proto::del_command( const QString &module_cmd,const QString &cmd )
         return;
     }
 
+    itr->_modify = true;
     itr->_cmd_map.remove( cmd );
 }
 
@@ -168,6 +171,7 @@ bool proto::update_module( const QString &cmd,const QString &key,const QString &
 
     if ( *field_itr == val ) return true; // no change
 
+    itr->_modify = true;
     // 如果更新Key,则不能与已有key冲突
     if (update_key)
     {
@@ -179,7 +183,9 @@ bool proto::update_module( const QString &cmd,const QString &key,const QString &
 
         fields[key] = val;
         _module[val] = *itr;
+
         _module.remove( cmd );
+        _deleting[cmd] = 1;//remove file from disk when save
     }
     else
     {
@@ -214,6 +220,7 @@ bool proto::update_command( const QString &module_cmd,
         return false;
     }
 
+    itr->_modify = true;
     if ( update_key )
     {
         if ( cmd == val ) return true; // no change
@@ -275,10 +282,20 @@ bool proto::save( const QString &path )
         return false;
     }
 
+    // remove file first,in cast same proto add
+    QMap<QString,int>::ConstIterator del_itr = _deleting.constBegin();
+    for ( ;del_itr != _deleting.constEnd();del_itr ++ )
+    {
+        dir.remove( QString("%1/%2.xml").arg(path).arg(del_itr.key()) );
+    }
+
     QMap<QString,struct OneModule>::ConstIterator itr = _module.constBegin();
     for ( ;itr != _module.constEnd();itr ++ )
     {
-        save_one( QString("%1/%2.xml").arg(path).arg(itr.key()),itr.value() );
+        if ( itr->_modify )
+        {
+            save_one( QString("%1/%2.xml").arg(path).arg(itr.key()),itr.value() );
+        }
     }
 
     return true;
@@ -332,6 +349,7 @@ bool proto::load_one(const QString &path,const QString &module_key,const QString
     }
     else if ( success )
     {
+        module._modify = false;
         _module[key_val] = module;
     }
 

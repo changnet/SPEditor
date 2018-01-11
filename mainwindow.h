@@ -32,6 +32,8 @@ public slots:
 
     void module_tbl_commit_data(QWidget *editor);
     void command_tbl_commit_data(QWidget *editor);
+
+    void show_search_result(const QString &module,const QString &command,const QString &field);
 private:
     void update_module_view();
     void update_command_view( QString &cmd );

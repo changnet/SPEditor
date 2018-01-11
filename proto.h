@@ -42,6 +42,7 @@ private:
     void save_one( const QString &cmd,const struct OneModule &module );
 
     QString _error_text;
+    QMap<QString,int> _deleting;
     QMap<QString,struct OneModule> _module;
 
     static class proto *_proto;

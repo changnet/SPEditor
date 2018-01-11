@@ -15,7 +15,11 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTableWidget" name="search_tbl"/>
+    <widget class="QTableWidget" name="search_tbl">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

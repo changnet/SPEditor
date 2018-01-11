@@ -25,6 +25,8 @@ public:
     ~QSearchDialog();
 
     void update_content(const QString &ctx, const QList<search_ctx> &content );
+public slots:
+    void on_search_tbl_cellDoubleClicked(int row, int column);
 signals:
     void result_double_click(const QString &module,const QString &command,const QString &field);
 private:
