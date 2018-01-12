@@ -7,6 +7,9 @@ import importlib
 import  xml.dom.minidom
 from optparse import OptionParser
 
+from ts_export import TSExport
+from lua_export import LuaExport
+
 class Exporter:
     def __init__(self,input_path,output_path,output_file):
         self.input_path  = input_path
@@ -39,7 +42,8 @@ class Exporter:
         root = xml_dom.documentElement
 
         # getElementsByTagName返回的是一个数组
-        xml_info["module"] = self.xml_get_field_text( root,"module" )
+        xml_info["command"] = self.xml_get_field_text( root,"command" )
+        xml_info["module"]  = self.xml_get_field_text( root,"module" )
         xml_info["comment"] = self.xml_get_field_text( root,"comment" )
 
         xml_info["commands"] = []
@@ -66,21 +70,17 @@ class Exporter:
 
         return info_list
 
-    # export to typescript file
-    def ts_export( self,info_list ):
-        path = self.output_path + "/" + self.output_file + ".ts"
-        ts_file = open( path,"wb" )
-        ts_file.write( "ts".encode("utf-8") )
-        ts_file.close()
-
     def lua_export( self,info_list ):
         print( "lua" )
 
     def export( self ):
         info_list = self.xml_parser()
-        self.ts_export( info_list )
-        self.lua_export( info_list )
-        print( info_list )
+
+        ts_export = TSExport( info_list,self.output_path,self.output_file )
+        ts_export.export()
+
+        lua_export = LuaExport( info_list,self.output_path,self.output_file )
+        lua_export.export()
 
 if __name__ == '__main__':
 
