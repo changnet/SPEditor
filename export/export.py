@@ -82,6 +82,8 @@ class Exporter:
         lua_export = LuaExport( info_list,self.output_path,self.output_file )
         lua_export.export()
 
+        print( "export done..." )
+
 if __name__ == '__main__':
 
     parser = OptionParser()
