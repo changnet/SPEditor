@@ -4,6 +4,8 @@
 #include "proto.h"
 #include "config.h"
 
+#include <QTimer>
+#include <QProcess>
 #include <QMessageBox>
 
 #define DEF_FIELD "undefine"
@@ -68,6 +70,11 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         ui->statusBar->showMessage( pt->get_error_text(),0 );
     }
+
+    QTimer *save_timer = new QTimer(this);
+    connect( save_timer,SIGNAL(timeout()),this,SLOT(save_proto()) );
+
+    save_timer->start( 5000 );
 }
 
 MainWindow::~MainWindow()
@@ -423,6 +430,19 @@ void MainWindow::on_action_about_triggered()
    );
 }
 
+void MainWindow::on_action_export_triggered()
+{
+    QString cmd = "export/exec.bat";
+    bool succes = QProcess::startDetached( cmd );
+    if ( !succes )
+    {
+        QMessageBox box;
+        box.setText( QString("can not run command:%1").arg(cmd) );
+        box.exec();
+        return;
+    }
+}
+
 void MainWindow::on_search_btn_clicked(bool check)
 {
     Q_UNUSED(check);
@@ -565,4 +585,10 @@ void MainWindow::show_search_result(
     if ( select_column < 0 ) return;
 
     select_tbl->setCurrentCell( select_row,select_column,QItemSelectionModel::ClearAndSelect );
+}
+
+void MainWindow::save_proto()
+{
+    const QString &path = config::instance()->get_source_path();
+    proto::instance()->save( path );
 }

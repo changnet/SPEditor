@@ -20,6 +20,7 @@ public:
     ~MainWindow();
 public slots:
     void on_action_about_triggered();
+    void on_action_export_triggered();
     void on_module_new_clicked(bool check = false);
     void on_module_del_clicked(bool check = false);
     void on_command_new_clicked(bool check = false);
@@ -30,6 +31,7 @@ public slots:
 
     void on_search_btn_clicked(bool check = false);
 
+    void save_proto();
     void module_tbl_commit_data(QWidget *editor);
     void command_tbl_commit_data(QWidget *editor);
 

@@ -16,6 +16,7 @@ void config::read_conf()
     QSettings rsetting( SETTING,QSettings::IniFormat );
 
     _proto_source = rsetting.value( "PATH","./proto" ).toString();
+    _export_command = rsetting.value( "export","exec.bat" ).toString();
 
     int length = rsetting.beginReadArray( "modulefield" );
     for ( int idx = 0;idx < length;idx ++ )
@@ -47,6 +48,7 @@ void config::writeExample()
 {
     QSettings wsetting( SETTING,QSettings::IniFormat );
     wsetting.setValue( "PATH","./proto" );
+    wsetting.setValue( "export","exec.bat" );
 
     QList<QString> module_field;
     module_field << "command" << "module" << "comment";
