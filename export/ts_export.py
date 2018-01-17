@@ -1,19 +1,21 @@
 #! python
 # -*- coding:utf-8 -*-
 
-clt_command_sample = '''const C{0}_{1} = {2}.module + {3};
+clt_command_sample = '''const C{0}_{1} = {0}.module + {2};
 '''
-srv_command_sample = '''const S{0}_{1} = {2}.module + {3};
+srv_command_sample = '''const S{0}_{1} = {0}.module + {2};
 '''
 
 # {{}}表示对{}的转义
-ts_field_sample = '''        {{ cmd:{0},object:"{1}" }}
+srv_field_sample = '''        {{ cmd:{0},object:"S{1}" }},
+'''
+clt_field_sample = '''        {{ cmd:{0},object:"C{1}" }},
 '''
 
 ts_module_sample = '''\
 const {0} = {{
     package: "{1}",
-    module: {2},
+    module: ({2} << 8),
 
     clt_cmd: [
 {3}
@@ -45,11 +47,13 @@ class TSExport:
         srv_cmd_list = ""
         clt_cmd_list = ""
         for command in info["commands"]:
-            srv_ctx = ts_field_sample.format( command["command"],command["server"] )
-            clt_ctx = ts_field_sample.format( command["command"],command["client"] )
-
-            srv_cmd_list += srv_ctx
-            clt_cmd_list += clt_ctx
+            cmd = command["command"]
+            srv_obj = command["server"]
+            clt_obj = command["client"]
+            if srv_obj != None:
+                srv_cmd_list += srv_field_sample.format( cmd,srv_obj )
+            if clt_obj != None:
+                clt_cmd_list += clt_field_sample.format( cmd,clt_obj )
 
         module_name = info["module"].lower()
         return ts_module_sample.format( module_name.upper(),
@@ -60,10 +64,14 @@ class TSExport:
 
         module_name = info["module"].upper()
         for command in info["commands"]:
-            command_list += clt_command_sample.format( 
-                module_name,command["client"],module_name,command["command"] )
-            command_list += srv_command_sample.format( 
-                module_name,command["server"],module_name,command["command"] )
+            cmd = command["command"]
+            srv_obj = command["server"]
+            clt_obj = command["client"]
+            field = command["field"].upper()
+            if clt_obj != None:
+                command_list += clt_command_sample.format( module_name,field,cmd )
+            if srv_obj != None:
+                command_list += srv_command_sample.format( module_name,field,cmd )
 
         return command_list
 

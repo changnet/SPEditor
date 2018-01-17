@@ -1,7 +1,7 @@
 #! python
 # -*- coding:utf-8 -*-
 
-lua_module_sample = '''local {0} = {1}
+lua_module_sample = '''local {0} = ({1} << 8)
 '''
 
 lua_clt_sample = '''    {0}_{1} = {{ {0} + {2},"{3}.pb","{3}.C{4}" }},
@@ -43,8 +43,10 @@ class LuaExport:
         module_name = info["module"].upper()
         package_name = info["module"].lower()
         for cmd in info["commands"]:
-            command_ctx += ctx_sample.format( module_name,
-                cmd["field"].upper(),cmd["command"],package_name,cmd[key] )
+            if None != cmd[key]:
+                command_ctx += ctx_sample.format( 
+                    module_name,cmd["field"].upper(),
+                    cmd["command"],package_name,cmd[key] )
 
         return command_ctx
 
