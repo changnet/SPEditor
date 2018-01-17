@@ -1,4 +1,7 @@
+bin
+*.zip
 *.pro.user
 export/proto/*
+export/export.exe
 export/export/*
 export/__pycache__/*

@@ -432,7 +432,7 @@ void MainWindow::on_action_about_triggered()
 
 void MainWindow::on_action_export_triggered()
 {
-    QString cmd = "export/exec.bat";
+    const QString &cmd = config::instance()->get_export_command();
     bool succes = QProcess::startDetached( cmd );
     if ( !succes )
     {

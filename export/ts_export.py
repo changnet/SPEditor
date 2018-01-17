@@ -1,9 +1,9 @@
 #! python
 # -*- coding:utf-8 -*-
 
-clt_command_sample = ''' const C{0}_{1} = {2}.module + {3};
+clt_command_sample = '''const C{0}_{1} = {2}.module + {3};
 '''
-srv_command_sample = ''' const S{0}_{1} = {2}.module + {3};
+srv_command_sample = '''const S{0}_{1} = {2}.module + {3};
 '''
 
 # {{}}表示对{}的转义
