@@ -81,7 +81,10 @@ class TSExport:
         ts_command_ctx = ""
 
         for info in self.info_list:
-            ts_module_list += info["module"].upper()
+            if ts_module_list == "":
+                ts_module_list += info["module"].upper()
+            else:
+                ts_module_list += "," + info["module"].upper()
             ts_module_ctx  += self.export_module_ctx( info )
             ts_command_ctx += self.export_command_ctx( info )
 
