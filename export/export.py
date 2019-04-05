@@ -70,9 +70,6 @@ class Exporter:
 
         return info_list
 
-    def lua_export( self,info_list ):
-        print( "lua" )
-
     def export( self ):
         info_list = self.xml_parser()
 

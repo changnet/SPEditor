@@ -1,13 +1,13 @@
 #! python
 # -*- coding:utf-8 -*-
 
-lua_module_sample = '''local {0} = ({1} << 8)
+lua_module_sample = '''local {0} = ({1} << 8) -- {2}
 '''
 
-lua_clt_sample = '''    {0}_{1} = {{ {0} + {2},"{3}.pb","{3}.C{4}" }},
+lua_clt_sample = '''    {0}_{1} = {{ {0} + {2},"{3}.pb","{3}.C{4}" }}, -- {5}
 '''
 
-lua_srv_sample = '''    {0}_{1} = {{ {0} + {2},"{3}.pb","{3}.S{4}" }},
+lua_srv_sample = '''    {0}_{1} = {{ {0} + {2},"{3}.pb","{3}.S{4}" }}, -- {5}
 '''
 
 lua_file_sample = '''\
@@ -35,18 +35,20 @@ class LuaExport:
         self.output_file = output_file
 
     def export_module_ctx( self,info ):
-        return lua_module_sample.format( info["module"].upper(),info["command"] )
+        return lua_module_sample.format( 
+            info["module"].upper(),info["command"],int(info["command"]) << 8 )
 
     def export_command_ctx( self,info,ctx_sample,key ):
         command_ctx = ""
 
+        module_val = int(info["command"]) << 8
         module_name = info["module"].upper()
         package_name = info["module"].lower()
         for cmd in info["commands"]:
             if None != cmd[key]:
                 command_ctx += ctx_sample.format( 
-                    module_name,cmd["field"].upper(),
-                    cmd["command"],package_name,cmd[key] )
+                    module_name,cmd["field"].upper(),cmd["command"],
+                    package_name,cmd[key],module_val + int(cmd["command"]) )
 
         return command_ctx
 
